@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Clip Date Scraper</title>
+</head>
+<body>
+    <h1>Twitch Clip Date Scraper</h1>
+    <p>Enter a webpage URL to retrieve its meta data:</p>
+    <input type="text" id="urlInput" placeholder="Enter URL here" style="width: 300px;">
+    <button id="scrapeButton">Scrape Meta Header</button>
+    <p id="result" style="margin-top: 20px; font-weight: bold;"></p>
+
+    <script>
+        document.getElementById('scrapeButton').addEventListener('click', async () => {
+            const url = document.getElementById('urlInput').value;
+            const resultElement = document.getElementById('result');
+
+            if (!url) {
+                resultElement.textContent = "Please enter a valid URL.";
+                return;
+            }
+
+            resultElement.textContent = "Fetching data...";
+
+            try {
+                const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+
+                if (!response.ok) {
+                    throw new Error(`Error fetching the URL: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(data.contents, 'text/html');
+                const metaTag = doc.querySelector('meta[property="og:video:release_date"]');
+
+                if (metaTag) {
+                    resultElement.textContent = `og:video:release_date: ${metaTag.getAttribute('content')}`;
+                } else {
+                    resultElement.textContent = "og:video:release_date not found.";
+                }
+            } catch (error) {
+                resultElement.textContent = `An error occurred: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
